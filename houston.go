@@ -23,9 +23,9 @@ func requestAsString(request []byte) string {
 		}
 	}
 
-	newRequest := make([]byte, endIndex-3)
+	newRequest := make([]byte, endIndex-2)
 
-	for i:=0; i<endIndex-3; i++ {
+	for i:=0; i<endIndex-2; i++ {
 		newRequest[i] = request[i]
 	}
 
