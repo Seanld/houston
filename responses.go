@@ -7,8 +7,8 @@ import (
 )
 
 
-func formatResponse(code int, meta string) {
-	return fmt.Sprintf("%d %s\r\n", code, meta)
+func formatResponse(code int, meta string) []byte {
+	return []byte(fmt.Sprintf("%d %s\r\n", code, meta))
 }
 
 
@@ -68,7 +68,7 @@ func ProxyError(conn net.Conn, info string) {
 }
 
 func SlowDown(conn net.Conn, waitSeconds int) {
-	conn.Write(Sprintf("44 %d\r\n", waitSeconds))
+	conn.Write([]byte(fmt.Sprintf("44 %d\r\n", waitSeconds)))
 }
 
 
