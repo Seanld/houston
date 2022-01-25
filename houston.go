@@ -3,38 +3,33 @@ package houston
 
 import (
 	"net"
+	"net/url"
 	"crypto/tls"
 	"fmt"
-	"strings"
-	"path"
 )
 
 
-// Drop protocol portion of request URL string, and return.
-func stripProtocol(request string) string {
-	if strings.Contains(request, "://") {
-		return strings.Split(request, "://")[1]
-	}
-	return request
-}
+// Strips all NULL chars, and formats to string.
+func requestAsString(request []byte) string {
+	var endIndex int
 
-
-// Strips CRLF terminator, and formats to string.
-func requestAsString(request []byte, noProtocol bool) string {
-	requestCopy := make([]byte, 1024)
-	copy(requestCopy, request)
-
-	for i, elem := range requestCopy {
-		if elem == 10 || elem == 13 {
-			requestCopy[i] = 0
+	// Once we hit a NULL char, we know where to
+	// cut the string off at, and where the CRLF
+	// will be.
+	for i, elem := range request {
+		if elem == 0 {
+			endIndex = i
+			break
 		}
 	}
 
-	if noProtocol {
-		return stripProtocol(string(requestCopy))
-	} else {
-		return string(requestCopy)
+	newRequest := make([]byte, endIndex-3)
+
+	for i:=0; i<endIndex-3; i++ {
+		newRequest[i] = request[i]
 	}
+
+	return string(newRequest)
 }
 
 
@@ -82,11 +77,15 @@ func (s *Server) Start(args ...interface{}) {
 		go func(c net.Conn) {
 			data := make([]byte, 1024)
 			c.Read(data)
-			dataStr := requestAsString(data, true)
-			dataStrCleaned := path.Clean(dataStr)
+			dataStr := requestAsString(data)
+			requestParsed, err := url.Parse(dataStr)
+
+			if err != nil {
+				fmt.Println("Error occurred when parsing URL!")
+			}
 
 			// Get and call the handler that matches the requested URL.
-			handler := s.Router.GetRouteHandler(dataStrCleaned)
+			handler := s.Router.GetRouteHandler(requestParsed.Path)
 			handler(c)
 
 			c.Close()
