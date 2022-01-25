@@ -57,7 +57,7 @@ func NewServer(router Router, certificatePath string, keyPath string) Server {
 // Arguments:
 // 1st?: Hostname
 // 2nd?: Port
-func (s Server) Start(args ...interface{}) {
+func (s *Server) Start(args ...interface{}) {
 	// Use first argument for hostname, otherwise `localhost`.
 	var hostName string
 	if len(args) >= 1 {
