@@ -37,11 +37,18 @@ func NewRouter(options RouterOptions) Router {
 // handler, then return the default error handler.
 func (r *Router) GetRouteHandler(targetPath string) RouteHandler {
 	cleanedPath := path.Clean(targetPath)
+
+	// TODO Make this match any-length whitespace string, not just single space.
+	if targetPath == "" || targetPath == " " {
+		return r.GetRouteHandler("/")
+	}
+
 	for _, elem := range r.Routes {
 		if elem.Path == cleanedPath {
 			return elem.Handler
 		}
 	}
+
 	return r.ErrorHandler
 }
 
