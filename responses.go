@@ -17,6 +17,23 @@ func Success(conn net.Conn, mimeType string) {
 }
 
 
+// Send content data to the client.
+func SendBytes(conn net.Conn, mimeType string, content []byte) {
+	Success(conn, mimeType)
+	conn.Write(content)
+}
+
+
+func SendString(conn net.Conn, mimeType string, str string) {
+	SendBytes(conn, mimeType, []byte(str))
+}
+
+
+func SendFile(conn net.Conn, mimeType string, path string) {
+	// TODO Implement later.
+}
+
+
 ///////////////
 // 1X INPUTS //
 ///////////////
