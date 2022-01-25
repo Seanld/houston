@@ -7,13 +7,13 @@ import (
 )
 
 
-func formatResponse(code int, meta string) string {
+func formatResponse(code int, meta string) {
 	return fmt.Sprintf("%d %s\r\n", code, meta)
 }
 
 
-func Success(conn net.Conn, mimeType string) string {
-	return formatResponse(20, mimeType)
+func Success(conn net.Conn, mimeType string) {
+	conn.Write(formatResponse(20, mimeType))
 }
 
 
@@ -22,13 +22,13 @@ func Success(conn net.Conn, mimeType string) string {
 ///////////////
 
 
-func Input(conn net.Conn, prompt string) string {
-	return formatResponse(10, prompt)
+func Input(conn net.Conn, prompt string) {
+	conn.Write(formatResponse(10, prompt))
 }
 
 
-func SensitiveInput(conn net.Conn, prompt string) string {
-	return formatResponse(11, prompt)
+func SensitiveInput(conn net.Conn, prompt string) {
+	conn.Write(formatResponse(11, prompt))
 }
 
 
@@ -37,12 +37,12 @@ func SensitiveInput(conn net.Conn, prompt string) string {
 //////////////////
 
 
-func RedirectTemp(conn net.Conn, url string) string {
-	return formatResponse(30, url)
+func RedirectTemp(conn net.Conn, url string) {
+	conn.Write(formatResponse(30, url))
 }
 
-func RedirectPerm(conn net.Conn, url string) string {
-	return formatResponse(31, url)
+func RedirectPerm(conn net.Conn, url string) {
+	conn.Write(formatResponse(31, url))
 }
 
 
@@ -51,24 +51,24 @@ func RedirectPerm(conn net.Conn, url string) string {
 ///////////////////////////
 
 
-func TempFail(conn net.Conn, info string) string {
-	return formatResponse(40, info)
+func TempFail(conn net.Conn, info string) {
+	conn.Write(formatResponse(40, info))
 }
 
-func ServerUnavailable(conn net.Conn, info string) string {
-	return formatResponse(41, info)
+func ServerUnavailable(conn net.Conn, info string) {
+	conn.Write(formatResponse(41, info))
 }
 
-func CGIError(conn net.Conn, info string) string {
-	return formatResponse(42, info)
+func CGIError(conn net.Conn, info string) {
+	conn.Write(formatResponse(42, info))
 }
 
-func CGIError(conn net.Conn, info string) string {
-	return formatResponse(43, info)
+func ProxyError(conn net.Conn, info string) {
+	conn.Write(formatResponse(43, info))
 }
 
-func CGIError(conn net.Conn, info string) string {
-	return formatResponse(44, info)
+func SlowDown(conn net.Conn, waitSeconds int) {
+	conn.Write(Sprintf("44 %d\r\n", waitSeconds))
 }
 
 
@@ -77,24 +77,24 @@ func CGIError(conn net.Conn, info string) string {
 ///////////////////////////
 
 
-func PermFailure(conn net.Conn, info string) string {
-	return formatResponse(50, info)
+func PermFailure(conn net.Conn, info string) {
+	conn.Write(formatResponse(50, info))
 }
 
-func NotFound(conn net.Conn, info string) string {
-	return formatResponse(51, info)
+func NotFound(conn net.Conn, info string) {
+	conn.Write(formatResponse(51, info))
 }
 
-func Gone(conn net.Conn, info string) string {
-	return formatResponse(52, info)
+func Gone(conn net.Conn, info string) {
+	conn.Write(formatResponse(52, info))
 }
 
-func ProxyRequestRefused(conn net.Conn, info string) string {
-	return formatResponse(53, info)
+func ProxyRequestRefused(conn net.Conn, info string) {
+	conn.Write(formatResponse(53, info))
 }
 
-func BadRequest(conn net.Conn, info string) string {
-	return formatResponse(59, info)
+func BadRequest(conn net.Conn, info string) {
+	conn.Write(formatResponse(59, info))
 }
 
 
@@ -103,14 +103,14 @@ func BadRequest(conn net.Conn, info string) string {
 ////////////////////////////////////
 
 
-func ClientCertRequired(conn net.Conn, info string) string {
-	return formatResponse(60, info)
+func ClientCertRequired(conn net.Conn, info string) {
+	conn.Write(formatResponse(60, info))
 }
 
-func CertNotAuthorized(conn net.Conn, info string) string {
-	return formatResponse(61, info)
+func CertNotAuthorized(conn net.Conn, info string) {
+	conn.Write(formatResponse(61, info))
 }
 
-func CertNotValid(conn net.Conn, info string) string {
-	return formatResponse(62, info)
+func CertNotValid(conn net.Conn, info string) {
+	conn.Write(formatResponse(62, info))
 }
