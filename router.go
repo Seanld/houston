@@ -35,7 +35,7 @@ func NewRouter(options RouterOptions) Router {
 
 // Get the handler for a given route. If no route matches a
 // handler, then return the default error handler.
-func (r Router) GetRouteHandler(targetPath string) RouteHandler {
+func (r *Router) GetRouteHandler(targetPath string) RouteHandler {
 	cleanedPath := path.Clean(targetPath)
 	for _, elem := range r.Routes {
 		if elem.Path == cleanedPath {
@@ -46,7 +46,7 @@ func (r Router) GetRouteHandler(targetPath string) RouteHandler {
 }
 
 
-func (r Router) AddRoute(targetPath string, handler RouteHandler) {
+func (r *Router) AddRoute(targetPath string, handler RouteHandler) {
 	newRoute := Route{path.Clean(targetPath), handler}
 	r.Routes = append(r.Routes, newRoute)
 }
