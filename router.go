@@ -16,7 +16,7 @@ type Route struct {
 }
 
 
-type RouterOptions struct {
+type RouterOpts struct {
 	ErrorHandler  RouteHandler
 }
 
@@ -27,9 +27,19 @@ type Router struct {
 }
 
 
-func NewRouter(options RouterOptions) Router {
-	newRouter := Router{ErrorHandler: options.ErrorHandler}
+func NewRouter(config RouterOpts) Router {
+	var newRouter Router
+	newRouter = Router{ErrorHandler: config.ErrorHandler}
 	return newRouter
+}
+
+
+func BlankRouter() Router {
+	return Router{
+		ErrorHandler: func(c net.Conn) {
+			NotFound(c, "Requested resource inaccessible.")
+		},
+	}
 }
 
 

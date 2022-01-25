@@ -4,6 +4,7 @@ package houston
 import (
 	"net"
 	"fmt"
+	"io/ioutil"
 )
 
 
@@ -30,7 +31,11 @@ func SendString(conn net.Conn, mimeType string, str string) {
 
 
 func SendFile(conn net.Conn, mimeType string, path string) {
-	// TODO Implement later.
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		fmt.Println("Error occurred when trying to read file", path)
+	}
+	SendBytes(conn, mimeType, content)
 }
 
 

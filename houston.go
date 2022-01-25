@@ -34,8 +34,8 @@ func requestAsString(request []byte) string {
 
 
 type Server struct {
-	TLSConfig   *tls.Config
-	Router      Router
+	TLSConfig  *tls.Config
+	Router     Router
 }
 
 
