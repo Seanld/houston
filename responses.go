@@ -30,12 +30,13 @@ func SendString(conn net.Conn, mimeType string, str string) {
 }
 
 
-func SendFile(conn net.Conn, mimeType string, path string) {
+func SendFile(conn net.Conn, mimeType string, path string) error {
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		fmt.Println("Error occurred when trying to read file", path)
+		return err
 	}
 	SendBytes(conn, mimeType, content)
+	return nil
 }
 
 

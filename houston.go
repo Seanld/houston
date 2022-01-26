@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"crypto/tls"
 	"fmt"
+	"path"
+	"mime"
 )
 
 
@@ -30,6 +32,16 @@ func requestAsString(request []byte) string {
 	}
 
 	return string(newRequest)
+}
+
+
+func GetMimetypeFromPath(targetPath string) string {
+	extension := path.Ext(targetPath)
+	if extension == ".gmi" || extension == ".gemini" {
+		return "text/gemini"
+	} else {
+		return mime.TypeByExtension(extension)
+	}
 }
 
 
@@ -84,9 +96,28 @@ func (s *Server) Start(args ...interface{}) {
 				fmt.Println("Error occurred when parsing URL!")
 			}
 
-			// Get and call the handler that matches the requested URL.
-			handler := s.Router.GetRouteHandler(requestParsed.Path)
-			handler(c)
+			handledAsSandbox := false
+
+			// First, see if there is a static file to serve
+			// from a sandbox.
+			cleanedPath := path.Clean(requestParsed.Path)
+			for _, elem := range s.Router.Sandboxes {
+				if elem.Path == path.Dir(cleanedPath) {
+					cleanedSandboxPath := path.Clean(elem.LocalPath)
+					fullLocalPath := path.Join(cleanedSandboxPath, path.Base(cleanedPath))
+					mimeType := GetMimetypeFromPath(fullLocalPath)
+					if (SendFile(c, mimeType, fullLocalPath) != nil) {
+						NotFound(c, "Resource does not exist!")
+					}
+					handledAsSandbox = true
+				}
+			}
+
+			if !handledAsSandbox {
+				// Get and call the handler that matches the requested URL.
+				handler := s.Router.GetRouteHandler(requestParsed.Path)
+				handler(c)
+			}
 
 			c.Close()
 		}(conn)

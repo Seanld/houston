@@ -7,6 +7,15 @@ import (
 )
 
 
+// Sandboxes represent "static" file directories
+// where having code execute upon URL visitation
+// is not necessary.
+type Sandbox struct {
+	Path string
+	LocalPath string
+}
+
+
 type RouteHandler func(net.Conn)
 
 
@@ -23,6 +32,7 @@ type RouterOpts struct {
 
 type Router struct {
 	Routes        []Route
+	Sandboxes     []Sandbox
 	ErrorHandler  RouteHandler
 }
 
@@ -53,6 +63,8 @@ func (r *Router) GetRouteHandler(targetPath string) RouteHandler {
 		return r.GetRouteHandler("/")
 	}
 
+	// If no static sandboxed files, then find
+	// a route.
 	for _, elem := range r.Routes {
 		if elem.Path == cleanedPath {
 			return elem.Handler
@@ -66,4 +78,10 @@ func (r *Router) GetRouteHandler(targetPath string) RouteHandler {
 func (r *Router) AddRoute(targetPath string, handler RouteHandler) {
 	newRoute := Route{path.Clean(targetPath), handler}
 	r.Routes = append(r.Routes, newRoute)
+}
+
+
+func (r *Router) AddSandbox(targetPath string, sandboxDirPath string) {
+	newSandbox := Sandbox{path.Clean(targetPath), sandboxDirPath}
+	r.Sandboxes = append(r.Sandboxes, newSandbox)
 }
