@@ -45,8 +45,8 @@ func NewRouter(config RouterOpts) Router {
 
 func BlankRouter() Router {
 	return Router{
-		ErrorHandler: func(c Context) {
-			NotFound(c, "Requested resource inaccessible.")
+		ErrorHandler: func(ctx Context) {
+			ctx.NotFound("Requested resource inaccessible.")
 		},
 	}
 }
