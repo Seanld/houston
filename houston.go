@@ -96,7 +96,7 @@ func HandleConnection(s *Server, c net.Conn) {
 			fullLocalPath := CompletePath(path.Join(cleanedSandboxPath, path.Base(cleanedPath)))
 			mimeType := GetMimetypeFromPath(fullLocalPath)
 
-			if (SendFile(context, mimeType, fullLocalPath) == nil) {
+			if (context.SendFile(mimeType, fullLocalPath) == nil) {
 				handledAsSandbox = true
 			}
 		}
