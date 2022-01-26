@@ -69,9 +69,24 @@ func CompletePath(targetPath string) string {
 }
 
 
+func isAllZeroes(bytes []byte) bool {
+	for _, v := range bytes {
+		if v != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+
 func HandleConnection(s *Server, c net.Conn) {
 	data := make([]byte, 1024)
 	c.Read(data)
+
+	if isAllZeroes(data) {
+		return
+	}
+
 	dataStr := requestAsString(data)
 	requestParsed, err := url.Parse(dataStr)
 
