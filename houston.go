@@ -69,26 +69,6 @@ func CompletePath(targetPath string) string {
 }
 
 
-type Server struct {
-	TLSConfig  *tls.Config
-	Router     Router
-}
-
-
-func NewServer(router Router, certificatePath string, keyPath string) Server {
-	cer, err := tls.LoadX509KeyPair(certificatePath, keyPath)
-
-	if err != nil {
-		log.Fatalf("Error when loading key and certificate: %v", err)
-	}
-
-	return Server{
-		Router: router,
-		TLSConfig: &tls.Config{Certificates: []tls.Certificate{cer}},
-	}
-}
-
-
 func HandleConnection(s *Server, c net.Conn) {
 	data := make([]byte, 1024)
 	c.Read(data)
@@ -99,11 +79,13 @@ func HandleConnection(s *Server, c net.Conn) {
 		fmt.Println("Error occurred when parsing URL!")
 	}
 
+	context := NewContext(dataStr, c)
+
+	cleanedPath := path.Clean(requestParsed.Path)
 	handledAsSandbox := false
 
 	// First, see if there is a static file to serve
 	// from a sandbox.
-	cleanedPath := path.Clean(requestParsed.Path)
 	for _, elem := range s.Router.Sandboxes {
 		dir := path.Dir(cleanedPath)
 		if dir == "." {
@@ -114,7 +96,7 @@ func HandleConnection(s *Server, c net.Conn) {
 			fullLocalPath := CompletePath(path.Join(cleanedSandboxPath, path.Base(cleanedPath)))
 			mimeType := GetMimetypeFromPath(fullLocalPath)
 
-			if (SendFile(c, mimeType, fullLocalPath) == nil) {
+			if (SendFile(context, mimeType, fullLocalPath) == nil) {
 				handledAsSandbox = true
 			}
 		}
@@ -123,7 +105,7 @@ func HandleConnection(s *Server, c net.Conn) {
 	if !handledAsSandbox {
 		// Get and call the handler that matches the requested URL.
 		handler := s.Router.GetRouteHandler(requestParsed.Path)
-		handler(c)
+		handler(context)
 	}
 
 	c.Close()

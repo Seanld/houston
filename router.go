@@ -2,7 +2,6 @@ package houston
 
 
 import (
-	"net"
 	"path"
 )
 
@@ -16,7 +15,7 @@ type Sandbox struct {
 }
 
 
-type RouteHandler func(net.Conn)
+type RouteHandler func(Context)
 
 
 type Route struct {
@@ -46,7 +45,7 @@ func NewRouter(config RouterOpts) Router {
 
 func BlankRouter() Router {
 	return Router{
-		ErrorHandler: func(c net.Conn) {
+		ErrorHandler: func(c Context) {
 			NotFound(c, "Requested resource inaccessible.")
 		},
 	}
