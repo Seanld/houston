@@ -131,7 +131,11 @@ func (s *Server) Start(args ...interface{}) {
 			// from a sandbox.
 			cleanedPath := path.Clean(requestParsed.Path)
 			for _, elem := range s.Router.Sandboxes {
-				if elem.Path == path.Dir(cleanedPath) {
+				dir := path.Dir(cleanedPath)
+				if dir == "." {
+					dir = "/"
+				}
+				if elem.Path == dir {
 					cleanedSandboxPath := path.Clean(elem.LocalPath)
 					fullLocalPath := CompletePath(path.Join(cleanedSandboxPath, path.Base(cleanedPath)))
 					mimeType := GetMimetypeFromPath(fullLocalPath)
