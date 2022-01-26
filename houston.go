@@ -154,7 +154,10 @@ func (s *Server) Start(args ...interface{}) {
 	ln, _ := tls.Listen("tcp", fmt.Sprintf("%s:%d", hostName, port), s.TLSConfig)
 
 	for {
-		conn, _ := ln.Accept()
+		conn, err := ln.Accept()
+		if err != nil {
+			log.Fatal(err)
+		}
 		go HandleConnection(s, conn)
 	}
 }
