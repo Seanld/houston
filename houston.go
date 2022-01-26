@@ -9,6 +9,7 @@ import (
 	"path"
 	"mime"
 	"os"
+	"log"
 )
 
 
@@ -48,19 +49,25 @@ func GetMimetypeFromPath(targetPath string) string {
 
 // If the path is a directory, append `index.gmi` to the end.
 // Otherwise, keep the path.
-func FilepathOrIndex(targetPath string) string {
+// TODO Clean this up. Looks nasty.
+func CompletePath(targetPath string) string {
 	pathClean := path.Clean(targetPath)
 	fileInfo, err := os.Stat(pathClean)
 
-	if err != nil {
-		fmt.Println("Error when opening", targetPath)
-	}
-
-	if fileInfo.IsDir() {
+	if err == nil && fileInfo.IsDir() {
 		return path.Join(pathClean, "index.gmi")
 	} else {
-		return pathClean
+		if path.Ext(pathClean) != "" {
+			fmt.Println("Has extension")
+			return pathClean
+		} else {
+			fmt.Println("Has no extension")
+			return pathClean + ".gmi"
+		}
 	}
+
+	log.Fatalf("Error when opening %s: %v", pathClean, err)
+	return ""
 }
 
 
@@ -71,7 +78,12 @@ type Server struct {
 
 
 func NewServer(router Router, certificatePath string, keyPath string) Server {
-	cer, _ := tls.LoadX509KeyPair(certificatePath, keyPath)
+	cer, err := tls.LoadX509KeyPair(certificatePath, keyPath)
+
+	if err != nil {
+		log.Fatalf("Error when loading key and certificate: %v", err)
+	}
+
 	return Server{
 		Router: router,
 		TLSConfig: &tls.Config{Certificates: []tls.Certificate{cer}},
@@ -123,7 +135,7 @@ func (s *Server) Start(args ...interface{}) {
 			for _, elem := range s.Router.Sandboxes {
 				if elem.Path == path.Dir(cleanedPath) {
 					cleanedSandboxPath := path.Clean(elem.LocalPath)
-					fullLocalPath := FilepathOrIndex(path.Join(cleanedSandboxPath, path.Base(cleanedPath)))
+					fullLocalPath := CompletePath(path.Join(cleanedSandboxPath, path.Base(cleanedPath)))
 					mimeType := GetMimetypeFromPath(fullLocalPath)
 
 					if (SendFile(c, mimeType, fullLocalPath) == nil) {
