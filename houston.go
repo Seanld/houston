@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"path"
 	"mime"
+	"os"
 )
 
 
@@ -41,6 +42,24 @@ func GetMimetypeFromPath(targetPath string) string {
 		return "text/gemini"
 	} else {
 		return mime.TypeByExtension(extension)
+	}
+}
+
+
+// If the path is a directory, append `index.gmi` to the end.
+// Otherwise, keep the path.
+func FilepathOrIndex(targetPath string) string {
+	pathClean := path.Clean(targetPath)
+	fileInfo, err := os.Stat(pathClean)
+
+	if err != nil {
+		fmt.Println("Error when opening", targetPath)
+	}
+
+	if fileInfo.IsDir() {
+		return path.Join(pathClean, "index.gmi")
+	} else {
+		return pathClean
 	}
 }
 
@@ -104,12 +123,12 @@ func (s *Server) Start(args ...interface{}) {
 			for _, elem := range s.Router.Sandboxes {
 				if elem.Path == path.Dir(cleanedPath) {
 					cleanedSandboxPath := path.Clean(elem.LocalPath)
-					fullLocalPath := path.Join(cleanedSandboxPath, path.Base(cleanedPath))
+					fullLocalPath := FilepathOrIndex(path.Join(cleanedSandboxPath, path.Base(cleanedPath)))
 					mimeType := GetMimetypeFromPath(fullLocalPath)
-					if (SendFile(c, mimeType, fullLocalPath) != nil) {
-						NotFound(c, "Resource does not exist!")
+
+					if (SendFile(c, mimeType, fullLocalPath) == nil) {
+						handledAsSandbox = true
 					}
-					handledAsSandbox = true
 				}
 			}
 
