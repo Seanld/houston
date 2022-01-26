@@ -1,5 +1,3 @@
-# Houston
-
 Houston is an Express-like Gemini server, written in Go. Primarily because
 I want to. Not because it's necessary. There are plenty other Gemini servers
 that have all important functionality covered, and several are written in Go
@@ -10,7 +8,7 @@ developed to suite my own purposes, for my own capsules, as I wanted a server
 that I understood. Not somebody else's.
 
 
-## Basic Usage Example
+# Basic Usage Example
 
 Easiest way to learn, for me, is by reading an example. Here you go:
 
@@ -20,30 +18,35 @@ package main
 import (
     "fmt"
     "git.sr.ht/~seanld/houston"
-    "net"
 )
     
 func main() {
     mainRouter := houston.BlankRouter()
     
+    // Route a URL path to a static file directory, like:
+    // gemini://localhost/ -> ./sandbox/index.gmi
+    // gemini://localhost/hello -> ./sandbox/hello.gmi
     mainRouter.AddSandbox("/", "sandbox")
     
-    mainRouter.AddRoute("/other", func(c net.Conn) {
-        houston.SendString(c, "text/plain", "Hello, world!")
+    // Run a function when gemini://localhost/interact is visited.
+    mainRouter.AddRoute("/interact", func(ctx houston.Context) {
+        // Send input response to client, and then run a function
+        // with the entered input value.
+        ctx.InputAndDo("Enter name", func(s string, c houston.Context) {
+            ctx.SendStringf("text/gemini", "Hello, %s, you are #%d.", s, 1)
+        })
     })
     
-    mainRouter.AddRoute("/hello", func(c net.Conn) {
-        houston.SendString(c, "text/gemini", "# Why, hello to you!")
-    })
-    
-    newServer := houston.NewServer(mainRouter, "certificate.crt", "private.key")
+    // Provide a router, certificate file, and private key file.
+    newServer := houston.NewServer(mainRouter, "cert/main.crt", "cert/my.key")
     
     fmt.Println("Starting server...")
-    newServer.Start("0.0.0.0")
+    newServer.Start("localhost")
 }
 ```
 
-## More Info
+
+# More Info
 
 `Router` structs are used by `Server` structs to provide functionality for handling
 request-to-response. `Routers` can have `Route` and `Sandbox` instances. They can be
@@ -51,10 +54,11 @@ added to a router by doing `Router.AddRoute(url, func (net.Conn) {})` or
 `Router.AddSandbox(url, sandboxDirPath)`.
 
 `Route` instances connect a URL path to a function that is executed when it's visited.
-You can use the responses from `responses.go` to make responses easier.
 
 `Sandbox` instances connect a URL path to a local directory that holds static files.
 For example, if you connect `/hello` to local dir `/hello-static`, and `/hello-static`
 has a file named `index.gmi` in it, and someone visits `/hello`, it will attempt
 to load the file `/hello-static/index.gmi`. Or any other file specified from that dir.
 
+`Context` instances provide the URL of a connection, the actual `net.Conn` of the
+connection, some methods for conveniently sending responses, and other features.
