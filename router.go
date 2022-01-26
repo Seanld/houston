@@ -58,8 +58,7 @@ func BlankRouter() Router {
 func (r *Router) GetRouteHandler(targetPath string) RouteHandler {
 	cleanedPath := path.Clean(targetPath)
 
-	// TODO Make this match any-length whitespace string, not just single space.
-	if targetPath == "" || targetPath == " " {
+	if cleanedPath == "" || cleanedPath == " " || cleanedPath == "." {
 		return r.GetRouteHandler("/")
 	}
 
