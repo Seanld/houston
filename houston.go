@@ -89,6 +89,47 @@ func NewServer(router Router, certificatePath string, keyPath string) Server {
 }
 
 
+func HandleConnection(s *Server, c net.Conn) {
+	data := make([]byte, 1024)
+	c.Read(data)
+	dataStr := requestAsString(data)
+	requestParsed, err := url.Parse(dataStr)
+
+	if err != nil {
+		fmt.Println("Error occurred when parsing URL!")
+	}
+
+	handledAsSandbox := false
+
+	// First, see if there is a static file to serve
+	// from a sandbox.
+	cleanedPath := path.Clean(requestParsed.Path)
+	for _, elem := range s.Router.Sandboxes {
+		dir := path.Dir(cleanedPath)
+		if dir == "." {
+			dir = "/"
+		}
+		if elem.Path == dir {
+			cleanedSandboxPath := path.Clean(elem.LocalPath)
+			fullLocalPath := CompletePath(path.Join(cleanedSandboxPath, path.Base(cleanedPath)))
+			mimeType := GetMimetypeFromPath(fullLocalPath)
+
+			if (SendFile(c, mimeType, fullLocalPath) == nil) {
+				handledAsSandbox = true
+			}
+		}
+	}
+
+	if !handledAsSandbox {
+		// Get and call the handler that matches the requested URL.
+		handler := s.Router.GetRouteHandler(requestParsed.Path)
+		handler(c)
+	}
+
+	c.Close()
+}
+
+
 // Start a configured server.
 // Arguments:
 // 1st?: Hostname
@@ -114,45 +155,6 @@ func (s *Server) Start(args ...interface{}) {
 
 	for {
 		conn, _ := ln.Accept()
-
-		go func(c net.Conn) {
-			data := make([]byte, 1024)
-			c.Read(data)
-			dataStr := requestAsString(data)
-			requestParsed, err := url.Parse(dataStr)
-
-			if err != nil {
-				fmt.Println("Error occurred when parsing URL!")
-			}
-
-			handledAsSandbox := false
-
-			// First, see if there is a static file to serve
-			// from a sandbox.
-			cleanedPath := path.Clean(requestParsed.Path)
-			for _, elem := range s.Router.Sandboxes {
-				dir := path.Dir(cleanedPath)
-				if dir == "." {
-					dir = "/"
-				}
-				if elem.Path == dir {
-					cleanedSandboxPath := path.Clean(elem.LocalPath)
-					fullLocalPath := CompletePath(path.Join(cleanedSandboxPath, path.Base(cleanedPath)))
-					mimeType := GetMimetypeFromPath(fullLocalPath)
-
-					if (SendFile(c, mimeType, fullLocalPath) == nil) {
-						handledAsSandbox = true
-					}
-				}
-			}
-
-			if !handledAsSandbox {
-				// Get and call the handler that matches the requested URL.
-				handler := s.Router.GetRouteHandler(requestParsed.Path)
-				handler(c)
-			}
-
-			c.Close()
-		}(conn)
+		go HandleConnection(s, conn)
 	}
 }
