@@ -58,10 +58,8 @@ func CompletePath(targetPath string) string {
 		return path.Join(pathClean, "index.gmi")
 	} else {
 		if path.Ext(pathClean) != "" {
-			fmt.Println("Has extension")
 			return pathClean
 		} else {
-			fmt.Println("Has no extension")
 			return pathClean + ".gmi"
 		}
 	}
