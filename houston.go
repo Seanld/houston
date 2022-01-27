@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"mime"
 	"os"
+	"strings"
 )
 
 
@@ -46,10 +47,45 @@ func GetMimetypeFromPath(targetPath string) string {
 }
 
 
+// Get the common part of two paths.
+func GetSharedPath(path1 string, path2 string) string {
+	path1 = path.Clean(path1)
+	path2 = path.Clean(path2)
+
+	var longerPath, shorterPath string
+	if len(path1) >= len(path2) {
+		longerPath = path1
+		shorterPath = path2
+	} else {
+		longerPath = path2
+		shorterPath = path1
+	}
+
+	sharedStr := ""
+
+	for i:=0; i<len(shorterPath); i++ {
+		if shorterPath[i] == longerPath[i] {
+			sharedStr += string(shorterPath[i])
+		} else {
+			if sharedStr == "/" {
+				sharedStr = ""
+			}
+			return sharedStr
+		}
+	}
+
+	if sharedStr == "/" {
+		sharedStr = ""
+	}
+	return sharedStr
+}
+
+
 // Match a URL path to a local path.
-func URLToSandboxPath(targetUrl string, sandboxBasePath string) (string, error) {
+func URLToSandboxPath(targetUrl string, sandbox Sandbox) (string, error) {
 	parsed, _ := url.Parse(targetUrl)
-	fullLocalPath := filepath.Join(sandboxBasePath, parsed.Path)
+	fullLocalPath := strings.Replace(parsed.Path, sandbox.Path, sandbox.LocalPath, 1)
+	fullLocalPath = path.Clean(fullLocalPath)
 	fileInfo, fileErr := os.Stat(fullLocalPath)
 
 	if fileErr == nil && fileInfo.IsDir() {
@@ -99,12 +135,8 @@ func HandleConnection(s *Server, c net.Conn) {
 	// First, see if there is a static file to serve
 	// from a sandbox.
 	for _, sandbox := range s.Router.Sandboxes {
-		dir := path.Dir(cleanedPath)
-		if dir == "." {
-			dir = "/"
-		}
-		if sandbox.Path == dir {
-			fullLocalPath, _ := URLToSandboxPath(dataStr, sandbox.LocalPath)
+		if GetSharedPath(sandbox.Path, cleanedPath) != "" {
+			fullLocalPath, _ := URLToSandboxPath(dataStr, sandbox)
 			mimeType := GetMimetypeFromPath(fullLocalPath)
 
 			if (context.SendFile(mimeType, fullLocalPath) == nil) {
