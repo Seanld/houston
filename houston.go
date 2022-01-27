@@ -10,6 +10,7 @@ import (
 	"mime"
 	"os"
 	"strings"
+	"log"
 )
 
 
@@ -126,6 +127,10 @@ func HandleConnection(s *Server, c net.Conn) {
 
 	dataStr := requestAsString(data)
 	requestParsed, err := url.Parse(dataStr)
+
+	if s.EnableLog {
+		log.Output(1, fmt.Sprintf("%s -> %s", c.RemoteAddr().String(), dataStr))
+	}
 
 	if err != nil {
 		fmt.Println("Error occurred when parsing URL!")
