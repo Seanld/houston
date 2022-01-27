@@ -4,12 +4,11 @@ package houston
 import (
 	"net"
 	"net/url"
-	"crypto/tls"
 	"fmt"
 	"path"
+	"path/filepath"
 	"mime"
 	"os"
-	"log"
 )
 
 
@@ -47,25 +46,23 @@ func GetMimetypeFromPath(targetPath string) string {
 }
 
 
-// If the path is a directory, append `index.gmi` to the end.
-// Otherwise, keep the path.
-// TODO Clean this up. Looks nasty.
-func CompletePath(targetPath string) string {
-	pathClean := path.Clean(targetPath)
-	fileInfo, err := os.Stat(pathClean)
+// Match a URL path to a local path.
+func URLToSandboxPath(targetUrl string, sandboxBasePath string) (string, error) {
+	parsed, _ := url.Parse(targetUrl)
+	fullLocalPath := filepath.Join(sandboxBasePath, parsed.Path)
+	fileInfo, fileErr := os.Stat(fullLocalPath)
 
-	if err == nil && fileInfo.IsDir() {
-		return path.Join(pathClean, "index.gmi")
+	if fileErr == nil && fileInfo.IsDir() {
+		return filepath.Join(fullLocalPath, "index.gmi"), nil
 	} else {
-		if path.Ext(pathClean) != "" {
-			return pathClean
+		if filepath.Ext(fullLocalPath) != "" {
+			return fullLocalPath, nil
 		} else {
-			return pathClean + ".gmi"
+			return fullLocalPath + ".gmi", nil
 		}
 	}
 
-	log.Fatalf("Error when opening %s: %v", pathClean, err)
-	return ""
+	return "", fileErr
 }
 
 
@@ -101,14 +98,13 @@ func HandleConnection(s *Server, c net.Conn) {
 
 	// First, see if there is a static file to serve
 	// from a sandbox.
-	for _, elem := range s.Router.Sandboxes {
+	for _, sandbox := range s.Router.Sandboxes {
 		dir := path.Dir(cleanedPath)
 		if dir == "." {
 			dir = "/"
 		}
-		if elem.Path == dir {
-			cleanedSandboxPath := path.Clean(elem.LocalPath)
-			fullLocalPath := CompletePath(path.Join(cleanedSandboxPath, path.Base(cleanedPath)))
+		if sandbox.Path == dir {
+			fullLocalPath, _ := URLToSandboxPath(dataStr, sandbox.LocalPath)
 			mimeType := GetMimetypeFromPath(fullLocalPath)
 
 			if (context.SendFile(mimeType, fullLocalPath) == nil) {
@@ -124,37 +120,4 @@ func HandleConnection(s *Server, c net.Conn) {
 	}
 
 	c.Close()
-}
-
-
-// Start a configured server.
-// Arguments:
-// 1st?: Hostname
-// 2nd?: Port
-func (s *Server) Start(args ...interface{}) {
-	// Use first argument for hostname, otherwise `localhost`.
-	var hostName string
-	if len(args) >= 1 {
-		hostName = args[0].(string)
-	} else {
-		hostName = "localhost"
-	}
-
-	// Use second argument for port #, otherwise `1965`.
-	var port int
-	if len(args) == 2 {
-		port = args[1].(int)
-	} else {
-		port = 1965
-	}
-
-	ln, _ := tls.Listen("tcp", fmt.Sprintf("%s:%d", hostName, port), s.TLSConfig)
-
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			log.Fatal(err)
-		}
-		go HandleConnection(s, conn)
-	}
 }
