@@ -8,6 +8,22 @@ developed to suite my own purposes, for my own capsules, as I wanted a server
 that I understood. Not somebody else's.
 
 
+# Roadmap
+
+My initial goal for Houston was to serve static files. It's moved beyond that
+already. Here are my goals for the project:
+
+-   [X] Serve static directories
+-   [X] Handle requests with user-defined functions
+-   [ ] Basic logging (a toggle for major events like incoming connections, nothing
+    fancy &#x2013; to keep it simple).
+-   [ ] Rate-limiting capabilities, to prevent DOS attacks and spam.
+-   [ ] Intuitive support for templates.
+-   [ ] [Titan protocol](https://transjovian.org:1965/titan/page/The%20Titan%20Specification) integration.
+    -   [Lagrange](https://github.com/skyjake/lagrange) is currently the only client I know of that implements this on the
+        user-side, so not super high priority.
+
+
 # Basic Usage Example
 
 Easiest way to learn, for me, is by reading an example. Here you go:
@@ -22,12 +38,12 @@ import (
     
 func main() {
     mainRouter := houston.BlankRouter()
-    
+
     // Route a URL path to a static file directory, like:
     // gemini://localhost/ -> ./sandbox/index.gmi
     // gemini://localhost/hello -> ./sandbox/hello.gmi
     mainRouter.AddSandbox("/", "sandbox")
-    
+
     // Run a function when gemini://localhost/interact is visited.
     mainRouter.AddRoute("/interact", func(ctx houston.Context) {
         // Send input response to client, and then run a function
@@ -36,10 +52,10 @@ func main() {
             ctx.SendStringf("text/gemini", "Hello, %s, you are #%d.", s, 1)
         })
     })
-    
+
     // Provide a router, certificate file, and private key file.
     newServer := houston.NewServer(mainRouter, "cert/main.crt", "cert/my.key")
-    
+
     fmt.Println("Starting server...")
     newServer.Start("localhost")
 }
@@ -62,3 +78,4 @@ to load the file `/hello-static/index.gmi`. Or any other file specified from tha
 
 `Context` instances provide the URL of a connection, the actual `net.Conn` of the
 connection, some methods for conveniently sending responses, and other features.
+
