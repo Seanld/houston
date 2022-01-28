@@ -86,10 +86,20 @@ func GetSharedPath(path1 string, path2 string) string {
 }
 
 
+func CleanURLPath(targetUrl string) string {
+	parsed, _ := url.Parse(targetUrl)
+	cleaned := path.Clean(parsed.Path)
+	if cleaned == "." || cleaned == "" || cleaned == " " {
+		cleaned = "/"
+	}
+	return cleaned
+}
+
+
 // Match a URL path to a local path.
 func URLToSandboxPath(targetUrl string, sandbox Sandbox) (string, error) {
-	parsed, _ := url.Parse(targetUrl)
-	fullLocalPath := strings.Replace(parsed.Path, sandbox.Path, sandbox.LocalPath, 1)
+	parsed := CleanURLPath(targetUrl)
+	fullLocalPath := strings.Replace(parsed, sandbox.Path, sandbox.LocalPath, 1)
 	fullLocalPath = path.Clean(fullLocalPath)
 	fileInfo, fileErr := os.Stat(fullLocalPath)
 
@@ -138,7 +148,7 @@ func HandleConnection(s *Server, c net.Conn) {
 
 	context := NewContext(dataStr, c)
 
-	cleanedPath := path.Clean(requestParsed.Path)
+	cleanedPath := CleanURLPath(requestParsed.Path)
 	handledAsSandbox := false
 
 	// First, see if there is a static file to serve
@@ -150,6 +160,8 @@ func HandleConnection(s *Server, c net.Conn) {
 
 			if (context.SendFile(mimeType, fullLocalPath) == nil) {
 				handledAsSandbox = true
+			} else {
+				context.NotFound("Requested resource not accessible!")
 			}
 		}
 	}
