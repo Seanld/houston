@@ -9,6 +9,21 @@ That said, this aims to be lightweight and easy to use. This was initially
 developed to suite my own purposes, for my own capsules, as I wanted a server
 that I understood. Not somebody else's.
 
+* Roadmap
+
+  My initial goal for Houston was to serve static files. It's moved beyond that
+  already. Here are my goals for the project:
+
+  * [X] Serve static directories
+  * [X] Handle requests with user-defined functions
+  * [ ] Basic logging (a toggle for major events like incoming connections, nothing
+    fancy -- to keep it simple).
+  * [ ] Rate-limiting capabilities, to prevent DOS attacks and spam.
+  * [ ] Intuitive support for templates.
+  * [ ] [[https://transjovian.org:1965/titan/page/The%20Titan%20Specification][Titan protocol]] integration.
+    + [[https://github.com/skyjake/lagrange][Lagrange]] is currently the only client I know of that implements this on the
+      user-side, so not super high priority.
+
 * Basic Usage Example
 
   Easiest way to learn, for me, is by reading an example. Here you go:
