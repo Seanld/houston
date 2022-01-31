@@ -16,7 +16,7 @@ that I understood. Not somebody else's.
 
   * [X] Serve static directories
   * [X] Handle requests with user-defined functions
-  * [ ] Basic logging (a toggle for major events like incoming connections, nothing
+  * [X] Basic logging (a toggle for major events like incoming connections, nothing
     fancy -- to keep it simple).
   * [ ] Rate-limiting capabilities, to prevent DOS attacks and spam.
   * [ ] Intuitive support for templates.
@@ -53,8 +53,9 @@ that I understood. Not somebody else's.
         })
       })
 
-      // Provide a router, certificate file, and private key file.
-      newServer := houston.NewServer(mainRouter, "cert/main.crt", "cert/my.key")
+      // Provide a router, certificate file, and private key file, and enable
+      // basic connection logging.
+      newServer := houston.NewServer(mainRouter, "cert/main.crt", "cert/my.key", true)
 
       fmt.Println("Starting server...")
       newServer.Start("localhost")
