@@ -101,6 +101,16 @@ func (ctx *Context) SensitiveInput(prompt string) {
 }
 
 
+func (ctx *Context) SensitiveInputAndDo(prompt string, handler InputHandler) {
+	queryString := ctx.GetQuery()
+	if queryString != "" {
+		handler(queryString, *ctx)
+	} else {
+		ctx.SensitiveInput(prompt)
+	}
+}
+
+
 //////////////////
 // 3X REDIRECTS //
 //////////////////
