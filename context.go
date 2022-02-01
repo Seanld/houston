@@ -73,6 +73,16 @@ func (ctx *Context) SendFile(mimeType string, path string) error {
 }
 
 
+func (ctx *Context) SendTemplate(mimeType string, path string, data interface{}) error {
+	rendered, err := Template(path, data)
+	if err != nil {
+		return err
+	}
+	ctx.SendString(mimeType, rendered)
+	return nil
+}
+
+
 ///////////////
 // 1X INPUTS //
 ///////////////
