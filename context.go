@@ -114,7 +114,7 @@ func (ctx *Context) InputAndDo(prompt string, handler InputHandler) {
 
 // Takes a multiple-value query, splits it on the delimiter, and passes the
 // slice of values into the handler.
-func (ctx *Context) MultiInputAndDo(prompt string, delim string, handler MultiInputHandler) {
+func (ctx *Context) DelimInputAndDo(prompt string, delim string, handler MultiInputHandler) {
 	queryString := ctx.GetQuery()
 	decodedQuery, err := url.QueryUnescape(queryString)
 	if err != nil {
