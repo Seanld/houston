@@ -109,11 +109,7 @@ func URLToSandboxPath(targetUrl string, sandbox Sandbox) (string, error) {
 	if fileErr == nil && fileInfo.IsDir() {
 		return filepath.Join(fullLocalPath, "index.gmi"), nil
 	} else {
-		if filepath.Ext(fullLocalPath) != "" {
-			return fullLocalPath, nil
-		} else {
-			return fullLocalPath + ".gmi", nil
-		}
+		return fullLocalPath, nil
 	}
 
 	return "", fileErr
