@@ -1,12 +1,12 @@
 package houston
 
-
 import (
-	"net"
-	"net/url"
-	"log"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"net"
+	"net/url"
+	"strings"
 )
 
 
@@ -89,6 +89,7 @@ func (ctx *Context) SendTemplate(mimeType string, path string, data interface{})
 
 
 type InputHandler func(string, Context)
+type MultiInputHandler func([]string, Context)
 
 
 func (ctx *Context) Input(prompt string) {
@@ -98,8 +99,31 @@ func (ctx *Context) Input(prompt string) {
 
 func (ctx *Context) InputAndDo(prompt string, handler InputHandler) {
 	queryString := ctx.GetQuery()
+	decodedQuery, err := url.QueryUnescape(queryString)
+	if err != nil {
+		ctx.BadRequest("Badly-formatted query string")
+	}
+
 	if queryString != "" {
-		handler(queryString, *ctx)
+		handler(decodedQuery, *ctx)
+	} else {
+		ctx.Input(prompt)
+	}
+}
+
+
+// Takes a multiple-value query, splits it on the delimiter, and passes the
+// slice of values into the handler.
+func (ctx *Context) MultiInputAndDo(prompt string, delim string, handler MultiInputHandler) {
+	queryString := ctx.GetQuery()
+	decodedQuery, err := url.QueryUnescape(queryString)
+	if err != nil {
+		ctx.BadRequest("Badly-formatted query string")
+	}
+
+	if queryString != "" {
+		splitted := strings.Split(decodedQuery, delim)
+		handler(splitted, *ctx)
 	} else {
 		ctx.Input(prompt)
 	}
