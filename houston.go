@@ -49,7 +49,7 @@ func GetMimetypeFromPath(targetPath string) string {
 
 
 // Get the common part of two paths.
-func GetSharedPath(path1 string, path2 string) string {
+func getSharedPath(path1 string, path2 string) string {
 	if path1 == "/" && path2 == "/" {
 		return "/"
 	}
@@ -79,14 +79,11 @@ func GetSharedPath(path1 string, path2 string) string {
 		}
 	}
 
-	if sharedStr == "/" {
-		sharedStr = ""
-	}
 	return sharedStr
 }
 
 
-func CleanURLPath(targetUrl string) string {
+func cleanURLPath(targetUrl string) string {
 	parsed, _ := url.Parse(targetUrl)
 	cleaned := path.Clean(parsed.Path)
 	if cleaned == "." || cleaned == "" || cleaned == " " {
@@ -97,20 +94,22 @@ func CleanURLPath(targetUrl string) string {
 
 
 // Match a URL path to a local path.
-func URLToSandboxPath(targetUrl string, sandbox Sandbox) (string, error) {
-	parsed := CleanURLPath(targetUrl)
-	fullLocalPath := strings.Replace(parsed, sandbox.Path, sandbox.LocalPath, 1)
+func urlToSandboxPath(targetUrl string, sandbox Sandbox) (string, error) {
+	parsed := cleanURLPath(targetUrl)
+
+	localPath := path.Clean(sandbox.LocalPath)
+	if string(localPath[len(localPath)-1]) != "/" {
+		localPath += "/"
+	}
+
+	fullLocalPath := strings.Replace(parsed, sandbox.Path, localPath, 1)
 	fullLocalPath = path.Clean(fullLocalPath)
 	fileInfo, fileErr := os.Stat(fullLocalPath)
 
 	if fileErr == nil && fileInfo.IsDir() {
 		return filepath.Join(fullLocalPath, "index.gmi"), nil
 	} else {
-		if filepath.Ext(fullLocalPath) != "" {
-			return fullLocalPath, nil
-		} else {
-			return fullLocalPath + ".gmi", nil
-		}
+		return fullLocalPath, nil
 	}
 
 	return "", fileErr
@@ -127,7 +126,7 @@ func isAllZeroes(bytes []byte) bool {
 }
 
 
-func HandleConnection(s *Server, c net.Conn) {
+func handleConnection(s *Server, c net.Conn) {
 	data := make([]byte, 1024)
 	c.Read(data)
 
@@ -148,20 +147,18 @@ func HandleConnection(s *Server, c net.Conn) {
 
 	context := NewContext(dataStr, c)
 
-	cleanedPath := CleanURLPath(requestParsed.Path)
+	cleanedPath := cleanURLPath(requestParsed.Path)
 	handledAsSandbox := false
 
 	// First, see if there is a static file to serve
 	// from a sandbox.
 	for _, sandbox := range s.Router.Sandboxes {
-		if GetSharedPath(sandbox.Path, cleanedPath) != "" {
-			fullLocalPath, _ := URLToSandboxPath(dataStr, sandbox)
+		if getSharedPath(sandbox.Path, cleanedPath) == sandbox.Path {
+			fullLocalPath, _ := urlToSandboxPath(dataStr, sandbox)
 			mimeType := GetMimetypeFromPath(fullLocalPath)
 
 			if (context.SendFile(mimeType, fullLocalPath) == nil) {
 				handledAsSandbox = true
-			} else {
-				context.NotFound("Requested resource not accessible!")
 			}
 		}
 	}

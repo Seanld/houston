@@ -93,6 +93,6 @@ func (s *Server) Start(args ...interface{}) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		go HandleConnection(s, conn)
+		go handleConnection(s, conn)
 	}
 }
