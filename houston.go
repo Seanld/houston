@@ -83,7 +83,7 @@ func getSharedPath(path1 string, path2 string) string {
 }
 
 
-func CleanURLPath(targetUrl string) string {
+func cleanURLPath(targetUrl string) string {
 	parsed, _ := url.Parse(targetUrl)
 	cleaned := path.Clean(parsed.Path)
 	if cleaned == "." || cleaned == "" || cleaned == " " {
@@ -94,8 +94,8 @@ func CleanURLPath(targetUrl string) string {
 
 
 // Match a URL path to a local path.
-func URLToSandboxPath(targetUrl string, sandbox Sandbox) (string, error) {
-	parsed := CleanURLPath(targetUrl)
+func urlToSandboxPath(targetUrl string, sandbox Sandbox) (string, error) {
+	parsed := cleanURLPath(targetUrl)
 
 	localPath := path.Clean(sandbox.LocalPath)
 	if string(localPath[len(localPath)-1]) != "/" {
@@ -147,14 +147,14 @@ func HandleConnection(s *Server, c net.Conn) {
 
 	context := NewContext(dataStr, c)
 
-	cleanedPath := CleanURLPath(requestParsed.Path)
+	cleanedPath := cleanURLPath(requestParsed.Path)
 	handledAsSandbox := false
 
 	// First, see if there is a static file to serve
 	// from a sandbox.
 	for _, sandbox := range s.Router.Sandboxes {
 		if getSharedPath(sandbox.Path, cleanedPath) == sandbox.Path {
-			fullLocalPath, _ := URLToSandboxPath(dataStr, sandbox)
+			fullLocalPath, _ := urlToSandboxPath(dataStr, sandbox)
 			mimeType := GetMimetypeFromPath(fullLocalPath)
 
 			if (context.SendFile(mimeType, fullLocalPath) == nil) {
