@@ -126,7 +126,7 @@ func isAllZeroes(bytes []byte) bool {
 }
 
 
-func HandleConnection(s *Server, c net.Conn) {
+func handleConnection(s *Server, c net.Conn) {
 	data := make([]byte, 1024)
 	c.Read(data)
 
