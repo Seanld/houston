@@ -163,8 +163,6 @@ func HandleConnection(s *Server, c net.Conn) {
 
 			if (context.SendFile(mimeType, fullLocalPath) == nil) {
 				handledAsSandbox = true
-			} else {
-				context.NotFound("Requested resource not accessible!")
 			}
 		}
 	}
