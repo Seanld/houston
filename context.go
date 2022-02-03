@@ -101,7 +101,7 @@ func (ctx *Context) InputAndDo(prompt string, handler InputHandler) {
 	queryString := ctx.GetQuery()
 	decodedQuery, err := url.QueryUnescape(queryString)
 	if err != nil {
-		ctx.BadRequest("Badly-formatted query string")
+		ctx.BadRequest("Badly-formatted query")
 	}
 
 	if queryString != "" {
@@ -118,7 +118,7 @@ func (ctx *Context) DelimInputAndDo(prompt string, delim string, handler MultiIn
 	queryString := ctx.GetQuery()
 	decodedQuery, err := url.QueryUnescape(queryString)
 	if err != nil {
-		ctx.BadRequest("Badly-formatted query string")
+		ctx.BadRequest("Badly-formatted query")
 	}
 
 	if queryString != "" {
