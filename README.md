@@ -42,10 +42,10 @@ func main() {
     // Route a URL path to a static file directory, like:
     // gemini://localhost/ -> ./sandbox/index.gmi
     // gemini://localhost/hello.gmi -> ./sandbox/hello.gmi
-    r.AddSandbox("/", "sandbox")
+    r.Sandbox("/", "sandbox")
 
     // Run a function when gemini://localhost/interact is visited.
-    r.AddRoute("/interact", func(ctx houston.Context) {
+    r.Handle("/interact", func(ctx houston.Context) {
         // Send input response to client if no query string is provided,
         // and then run a function with the entered input value.
         ctx.InputAndDo("Enter name", func(s string) {
