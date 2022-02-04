@@ -73,13 +73,13 @@ func (r *Router) GetRouteHandler(targetPath string) RouteHandler {
 }
 
 
-func (r *Router) AddRoute(targetPath string, handler RouteHandler) {
+func (r *Router) Handle(targetPath string, handler RouteHandler) {
 	newRoute := Route{path.Clean(targetPath), handler}
 	r.Routes = append(r.Routes, newRoute)
 }
 
 
-func (r *Router) AddSandbox(targetPath string, sandboxDirPath string) {
+func (r *Router) Sandbox(targetPath string, sandboxDirPath string) {
 	newSandbox := Sandbox{path.Clean(targetPath), sandboxDirPath}
 	r.Sandboxes = append(r.Sandboxes, newSandbox)
 }
