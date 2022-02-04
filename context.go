@@ -89,8 +89,8 @@ func (ctx *Context) SendTemplate(mimeType string, path string, data interface{})
 ///////////////
 
 
-type InputHandler func(string, Context)
-type MultiInputHandler func([]string, Context)
+type InputHandler func(string)
+type MultiInputHandler func([]string)
 
 
 func (ctx *Context) Input(prompt string) {
@@ -106,7 +106,7 @@ func (ctx *Context) InputAndDo(prompt string, handler InputHandler) {
 	}
 
 	if queryString != "" {
-		handler(decodedQuery, *ctx)
+		handler(decodedQuery)
 	} else {
 		ctx.Input(prompt)
 	}
@@ -124,7 +124,7 @@ func (ctx *Context) DelimInputAndDo(prompt string, delim string, handler MultiIn
 
 	if queryString != "" {
 		splitted := strings.Split(decodedQuery, delim)
-		handler(splitted, *ctx)
+		handler(splitted)
 	} else {
 		ctx.Input(prompt)
 	}
@@ -139,7 +139,7 @@ func (ctx *Context) SensitiveInput(prompt string) {
 func (ctx *Context) SensitiveInputAndDo(prompt string, handler InputHandler) {
 	queryString := ctx.GetQuery()
 	if queryString != "" {
-		handler(queryString, *ctx)
+		handler(queryString)
 	} else {
 		ctx.SensitiveInput(prompt)
 	}
