@@ -37,28 +37,28 @@ that I understood. Not somebody else's.
     )
 
     func main() {
-      mainRouter := houston.BlankRouter()
+      r := houston.BlankRouter()
 
       // Route a URL path to a static file directory, like:
       // gemini://localhost/ -> ./sandbox/index.gmi
       // gemini://localhost/hello -> ./sandbox/hello.gmi
-      mainRouter.AddSandbox("/", "sandbox")
+      r.AddSandbox("/", "sandbox")
 
       // Run a function when gemini://localhost/interact is visited.
-      mainRouter.AddRoute("/interact", func(ctx houston.Context) {
+      r.AddRoute("/interact", func(ctx houston.Context) {
         // Send input response to client, and then run a function
         // with the entered input value.
-        ctx.InputAndDo("Enter name", func(s string, c houston.Context) {
+        ctx.InputAndDo("Enter name", func(s string) {
           ctx.SendStringf("text/gemini", "Hello, %s, you are #%d.", s, 1)
         })
       })
 
       // Provide a router, certificate file, and private key file, and enable
       // basic connection logging.
-      newServer := houston.NewServer(mainRouter, "cert/main.crt", "cert/my.key", true)
+      s := houston.NewServer(r, "cert/main.crt", "cert/my.key", true)
 
       fmt.Println("Starting server...")
-      newServer.Start("localhost")
+      s.Start("localhost")
     }
   #+END_SRC
 
