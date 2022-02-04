@@ -18,7 +18,7 @@ already. Here are my goals for the project:
 -   [X] Basic logging (a toggle for major events like incoming connections, nothing
     fancy &#x2013; to keep it simple).
 -   [ ] Rate-limiting capabilities, to prevent DOS attacks and spam.
--   [ ] Intuitive support for templates.
+-   [X] Intuitive support for templates.
 -   [ ] [Titan protocol](https://transjovian.org:1965/titan/page/The%20Titan%20Specification) integration.
     -   [Lagrange](https://github.com/skyjake/lagrange) is currently the only client I know of that implements this on the
         user-side, so not super high priority.
@@ -41,13 +41,13 @@ func main() {
 
     // Route a URL path to a static file directory, like:
     // gemini://localhost/ -> ./sandbox/index.gmi
-    // gemini://localhost/hello -> ./sandbox/hello.gmi
+    // gemini://localhost/hello.gmi -> ./sandbox/hello.gmi
     r.AddSandbox("/", "sandbox")
 
     // Run a function when gemini://localhost/interact is visited.
     r.AddRoute("/interact", func(ctx houston.Context) {
-        // Send input response to client, and then run a function
-        // with the entered input value.
+        // Send input response to client if no query string is provided,
+        // and then run a function with the entered input value.
         ctx.InputAndDo("Enter name", func(s string) {
             ctx.SendStringf("text/gemini", "Hello, %s, you are #%d.", s, 1)
         })
@@ -55,7 +55,7 @@ func main() {
 
     // Provide a router, certificate file, and private key file, and enable
     // basic connection logging.
-    s := houston.NewServer(r, "cert/main.crt", "cert/my.key", true)
+    s := houston.NewServer(r, "main.crt", "my.key", true)
 
     fmt.Println("Starting server...")
     s.Start("localhost")
