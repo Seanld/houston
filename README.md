@@ -67,8 +67,8 @@ func main() {
 
 `Router` structs are used by `Server` structs to provide functionality for handling
 request-to-response. `Routers` can have `Route` and `Sandbox` instances. They can be
-added to a router by doing `Router.AddRoute(url, func (net.Conn) {})` or
-`Router.AddSandbox(url, sandboxDirPath)`.
+added to a router by doing `Router.Handle(url, func (net.Conn) {})` or
+`Router.Sandbox(url, sandboxDirPath)`.
 
 `Route` instances connect a URL path to a function that is executed when it's visited.
 
