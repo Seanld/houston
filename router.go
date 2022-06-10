@@ -10,7 +10,7 @@ import (
 // where having code execute upon URL visitation
 // is not necessary.
 type Sandbox struct {
-	Path string
+	Path      string
 	LocalPath string
 }
 
