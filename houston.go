@@ -145,6 +145,8 @@ func handleConnection(s *Server, c net.Conn) {
 		fmt.Println("Error occurred when parsing URL!")
 	}
 
+	// Usually happens when a bot probes the server with a
+	// blank HTTP request. This saves it from crashing.
 	if (requestParsed == nil) {
 		c.Close()
 		log.Output(1, fmt.Sprintf("Ignored request to `%s` and closed connection.", requestParsed))
