@@ -145,6 +145,12 @@ func handleConnection(s *Server, c net.Conn) {
 		fmt.Println("Error occurred when parsing URL!")
 	}
 
+	if (requestParsed == nil) {
+		c.Close()
+		log.Output(1, fmt.Sprintf("Ignored request to `%s` and closed connection.", requestParsed))
+		return
+	}
+
 	context := NewContext(dataStr, c)
 
 	cleanedPath := cleanURLPath(requestParsed.Path)
