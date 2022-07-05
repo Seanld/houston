@@ -155,6 +155,13 @@ func handleConnection(s *Server, c net.Conn) {
 
 	context := NewContext(dataStr, c)
 
+	// This if statement handles rate-limiting. There's
+	// a lot more depth to it, but without this if statement,
+	// there is no rate-limiting at all.
+	if !allowConnection(context, 1) {
+		return
+	}
+
 	cleanedPath := cleanURLPath(requestParsed.Path)
 	handledAsSandbox := false
 

@@ -84,15 +84,18 @@ func (s *Server) Start(args ...interface{}) {
 
 	for {
 		conn, err := ln.Accept()
+
 		if s.EnableLog {
 			clientIp := strings.Split(conn.RemoteAddr().String(), ":")[0]
 			message := fmt.Sprintf("New request from %s", clientIp)
 			log.SetOutput(f)
 			log.Output(1, message)
 		}
+
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		go handleConnection(s, conn)
 	}
 }
