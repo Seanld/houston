@@ -70,7 +70,6 @@ func PoolDeleteEntry(addr string) {
 
 
 func PoolCreateEntry(addr string, rateLimit rate.Limit, burst int) *LimitedConn {
-	fmt.Println("Entry created!")
 	newEntry := LimitedConn{
 		IP: addr,
 		Limiter: rate.NewLimiter(rateLimit, burst),
@@ -96,7 +95,6 @@ func allowConnection(ctx Context, tokens int) bool {
 		// via config.
 		entryPtr = PoolCreateEntry(addr, 2, 2)
 	}
-	fmt.Println(entryPtr)
 
 	if entryPtr.Limiter.AllowN(time.Now(), tokens) {
 		// Connection allowed, so use up some of the client's tokens.
