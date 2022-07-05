@@ -21,7 +21,7 @@ type LimitedConn struct {
 var connPool []*LimitedConn = []*LimitedConn{}
 
 
-func PoolFindEntry(addr string) (*LimitedConn, error) {
+func poolFindEntry(addr string) (*LimitedConn, error) {
 	for _, limitedConn := range connPool {
 		fmt.Println(limitedConn.IP, addr)
 		if limitedConn.IP == addr {
@@ -32,8 +32,8 @@ func PoolFindEntry(addr string) (*LimitedConn, error) {
 }
 
 
-func PoolCheckEntry(addr string) (bool, error) {
-	limitedConn, err := PoolFindEntry(addr)
+func poolCheckEntry(addr string) (bool, error) {
+	limitedConn, err := poolFindEntry(addr)
 	if err != nil {
 		return false, err
 	}
@@ -41,8 +41,8 @@ func PoolCheckEntry(addr string) (bool, error) {
 }
 
 
-func PoolReserveEntry(addr string, tokens int) (*rate.Reservation, error) {
-	limitedConn, err := PoolFindEntry(addr)
+func poolReserveEntry(addr string, tokens int) (*rate.Reservation, error) {
+	limitedConn, err := poolFindEntry(addr)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func PoolReserveEntry(addr string, tokens int) (*rate.Reservation, error) {
 }
 
 
-func PoolDeleteEntry(addr string) {
+func poolDeleteEntry(addr string) {
 	idx := 0
 	found := false
 
@@ -69,7 +69,7 @@ func PoolDeleteEntry(addr string) {
 }
 
 
-func PoolCreateEntry(addr string, rateLimit rate.Limit, burst int) *LimitedConn {
+func poolCreateEntry(addr string, rateLimit rate.Limit, burst int) *LimitedConn {
 	newEntry := LimitedConn{
 		IP: addr,
 		Limiter: rate.NewLimiter(rateLimit, burst),
@@ -88,12 +88,12 @@ func allowConnection(ctx Context, tokens int) bool {
 	addrWithPort := ctx.Connection.RemoteAddr().String()
 	addr := strings.Split(addrWithPort, ":")[0]
 
-	entryPtr, err := PoolFindEntry(addr)
+	entryPtr, err := poolFindEntry(addr)
 	if err != nil {
 		// Entry doesn't exist in pool yet, so create one.
 		// TODO Allow customizing of the rate and bucket size
 		// via config.
-		entryPtr = PoolCreateEntry(addr, 2, 2)
+		entryPtr = poolCreateEntry(addr, 2, 2)
 	}
 
 	if entryPtr.Limiter.AllowN(time.Now(), tokens) {
