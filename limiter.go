@@ -69,10 +69,10 @@ func poolDeleteEntry(addr string) {
 }
 
 
-func poolCreateEntry(addr string, rateLimit rate.Limit, burst int) *LimitedConn {
+func poolCreateEntry(addr string, rateLimit rate.Limit, bucketSize int) *LimitedConn {
 	newEntry := LimitedConn{
 		IP: addr,
-		Limiter: rate.NewLimiter(rateLimit, burst),
+		Limiter: rate.NewLimiter(rateLimit, bucketSize),
 	}
 	connPool = append(connPool, &newEntry)
 	return &newEntry
