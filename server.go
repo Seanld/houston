@@ -1,12 +1,12 @@
 package houston
 
-
 import (
 	"crypto/tls"
-	"log"
 	"fmt"
-	"strings"
+	"log"
 	"os"
+
+	"golang.org/x/time/rate"
 )
 
 
@@ -37,6 +37,8 @@ type ServerConfig struct {
 
 	// Whether the server should apply rate-limiting.
 	EnableLimiting   bool
+	MaxRate          rate.Limit
+	BucketSize       int
 }
 
 
@@ -51,6 +53,26 @@ func NewServer(router *Router, config *ServerConfig) Server {
 		log.Fatalf("Error when loading key and certificate: %v", err)
 	}
 
+	// Enforce hostname and port number defaults if not set.
+	if len(config.Hostname) == 0 {
+		config.Hostname = "localhost"
+	}
+	if config.Port == 0 {
+		config.Port = 1965
+	}
+
+	// Rate-limiting defaults.
+	if config.MaxRate == 0 {
+		config.MaxRate = 2
+	}
+	if config.BucketSize == 0 {
+		config.BucketSize = 2
+	}
+
+	if len(config.LogFilePath) == 0 {
+		config.LogFilePath = "houston.log"
+	}
+
 	return Server{
 		Router: router,
 		TLSConfig: &tls.Config{Certificates: []tls.Certificate{cer}},
@@ -60,16 +82,6 @@ func NewServer(router *Router, config *ServerConfig) Server {
 
 
 func (s *Server) Start() {
-	// If IP or hostname is not given, set to `localhost`.
-	if len(s.Config.Hostname) == 0 {
-		s.Config.Hostname = "localhost"
-	}
-
-	// If port number is not given (is 0), default to 1965 (standard Gemini port).
-	if s.Config.Port == 0 {
-		s.Config.Port = 1965
-	}
-
 	var f *os.File
 	var fileErr error
 
@@ -78,6 +90,7 @@ func (s *Server) Start() {
 		defer f.Close()
 
 		s.Config.LogFile = f
+		log.SetOutput(f)
 	}
 
 	if fileErr != nil {
@@ -88,13 +101,6 @@ func (s *Server) Start() {
 
 	for {
 		conn, err := ln.Accept()
-
-		if s.Config.EnableLog {
-			clientIp := strings.Split(conn.RemoteAddr().String(), ":")[0]
-			message := fmt.Sprintf("New request from %s", clientIp)
-			log.SetOutput(f)
-			log.Output(1, message)
-		}
 
 		if err != nil {
 			log.Fatal(err)
