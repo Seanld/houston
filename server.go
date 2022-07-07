@@ -12,80 +12,84 @@ import (
 
 type Server struct {
 	TLSConfig    *tls.Config
-	Router       Router
-	EnableLog    bool
-	LogFilePath  string
-	LogFile      *os.File
+	Router       *Router
+	Config       ServerConfig
 }
 
 
-func NewServer(router Router, certificatePath string, keyPath string, args ...interface{}) Server {
-	cer, err := tls.LoadX509KeyPair(certificatePath, keyPath)
+type ServerConfig struct {
+	// TLS certificate and key file paths.
+	CertificatePath  string
+	KeyPath          string
+
+	// Self-explanatory.
+	Hostname         string
+	Port             uint16
+
+	// Whether connection logging should occur,
+	// and where the file should be located.
+	EnableLog        bool
+	LogFilePath      string
+	// This can be accessed during the server's lifetime to
+	// manually write more info to the config, other than what's
+	// built-in to Houston.
+	LogFile          *os.File
+
+	// Whether the server should apply rate-limiting.
+	EnableLimiting   bool
+}
+
+
+func NewServer(router *Router, config *ServerConfig) Server {
+	if config.CertificatePath == "" || config.KeyPath == "" {
+		log.Fatal("Must provide TLS certificate and key path to server config!")
+	}
+
+	cer, err := tls.LoadX509KeyPair(config.CertificatePath, config.KeyPath)
 
 	if err != nil {
 		log.Fatalf("Error when loading key and certificate: %v", err)
 	}
 
-	enableLog := false
-	if args != nil && len(args) >= 1 {
-		enableLog = args[0].(bool)
-	}
-
-	logFilePath := "houston.log"
-	if args != nil && len(args) == 2 {
-		logFilePath = args[1].(string)
-	}
-
 	return Server{
 		Router: router,
 		TLSConfig: &tls.Config{Certificates: []tls.Certificate{cer}},
-		EnableLog: enableLog,
-		LogFilePath: logFilePath,
+		Config: *config,
 	}
 }
 
 
-// Start a configured server.
-// Arguments:
-// 1st?: Hostname
-// 2nd?: Port
-func (s *Server) Start(args ...interface{}) {
-	// Use first argument for hostname, otherwise `localhost`.
-	var hostName string
-	if len(args) >= 1 {
-		hostName = args[0].(string)
-	} else {
-		hostName = "localhost"
+func (s *Server) Start() {
+	// If IP or hostname is not given, set to `localhost`.
+	if len(s.Config.Hostname) == 0 {
+		s.Config.Hostname = "localhost"
 	}
 
-	// Use second argument for port #, otherwise `1965`.
-	var port int
-	if len(args) == 2 {
-		port = args[1].(int)
-	} else {
-		port = 1965
+	// If port number is not given (is 0), default to 1965 (standard Gemini port).
+	if s.Config.Port == 0 {
+		s.Config.Port = 1965
 	}
 
 	var f *os.File
 	var fileErr error
 
-	if s.EnableLog {
-		f, fileErr = os.OpenFile(s.LogFilePath, os.O_APPEND | os.O_CREATE | os.O_RDWR, 0666)
+	if s.Config.EnableLog {
+		f, fileErr = os.OpenFile(s.Config.LogFilePath, os.O_APPEND | os.O_CREATE | os.O_RDWR, 0666)
 		defer f.Close()
 
-		s.LogFile = f
+		s.Config.LogFile = f
 	}
 
 	if fileErr != nil {
 		log.Println("Failed to open log file!")
 	}
 
-	ln, _ := tls.Listen("tcp", fmt.Sprintf("%s:%d", hostName, port), s.TLSConfig)
+	ln, _ := tls.Listen("tcp", fmt.Sprintf("%s:%d", s.Config.Hostname, s.Config.Port), s.TLSConfig)
 
 	for {
 		conn, err := ln.Accept()
 
-		if s.EnableLog {
+		if s.Config.EnableLog {
 			clientIp := strings.Split(conn.RemoteAddr().String(), ":")[0]
 			message := fmt.Sprintf("New request from %s", clientIp)
 			log.SetOutput(f)
