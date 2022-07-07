@@ -2,7 +2,6 @@ package houston
 
 import (
 	"errors"
-	"fmt"
 	"time"
 	"strings"
 
@@ -23,7 +22,6 @@ var connPool []*LimitedConn = []*LimitedConn{}
 
 func poolFindEntry(addr string) (*LimitedConn, error) {
 	for _, limitedConn := range connPool {
-		fmt.Println(limitedConn.IP, addr)
 		if limitedConn.IP == addr {
 			return limitedConn, nil
 		}
@@ -83,7 +81,7 @@ func poolCreateEntry(addr string, rateLimit rate.Limit, bucketSize int) *Limited
 // to continue, or if it will be denied due to rate limits.
 // Returns a "slow down" response, and closes connection if condition
 // is denied. If allowed, add token to rate limiter bucket.
-func allowConnection(ctx Context, tokens int) bool {
+func allowConnection(config ServerConfig, ctx *Context, tokens int) bool {
 	var entryPtr *LimitedConn
 	addrWithPort := ctx.Connection.RemoteAddr().String()
 	addr := strings.Split(addrWithPort, ":")[0]
@@ -93,7 +91,7 @@ func allowConnection(ctx Context, tokens int) bool {
 		// Entry doesn't exist in pool yet, so create one.
 		// TODO Allow customizing of the rate and bucket size
 		// via config.
-		entryPtr = poolCreateEntry(addr, 2, 2)
+		entryPtr = poolCreateEntry(addr, config.MaxRate, config.BucketSize)
 	}
 
 	if entryPtr.Limiter.AllowN(time.Now(), tokens) {
