@@ -3,7 +3,7 @@ package houston
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"log"
 	"net"
 	"net/url"
@@ -65,7 +65,7 @@ func (ctx *Context) SendStringf(mimeType string, str string, values ...interface
 
 
 func (ctx *Context) SendFile(mimeType string, path string) error {
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
