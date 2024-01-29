@@ -2,8 +2,8 @@ package houston
 
 import (
 	"errors"
-	"time"
 	"strings"
+	"time"
 
 	"golang.org/x/time/rate"
 )
@@ -11,14 +11,12 @@ import (
 // Rate-limited connection. Stores the IP address, and
 // the pointer to the rate-limiter it's associated with.
 type LimitedConn struct {
-	IP string
-	Limiter *rate.Limiter
+	IP          string
+	Limiter     *rate.Limiter
 	Reservation *rate.Reservation
 }
 
-
 var connPool []*LimitedConn = []*LimitedConn{}
-
 
 func poolFindEntry(addr string) (*LimitedConn, error) {
 	for _, limitedConn := range connPool {
@@ -29,7 +27,6 @@ func poolFindEntry(addr string) (*LimitedConn, error) {
 	return nil, errors.New("Connection not found in pool!")
 }
 
-
 func poolCheckEntry(addr string) (bool, error) {
 	limitedConn, err := poolFindEntry(addr)
 	if err != nil {
@@ -38,7 +35,6 @@ func poolCheckEntry(addr string) (bool, error) {
 	return limitedConn.Limiter.Allow(), nil
 }
 
-
 func poolReserveEntry(addr string, tokens int) (*rate.Reservation, error) {
 	limitedConn, err := poolFindEntry(addr)
 	if err != nil {
@@ -46,7 +42,6 @@ func poolReserveEntry(addr string, tokens int) (*rate.Reservation, error) {
 	}
 	return limitedConn.Limiter.ReserveN(time.Now(), tokens), nil
 }
-
 
 func poolDeleteEntry(addr string) {
 	idx := 0
@@ -66,16 +61,14 @@ func poolDeleteEntry(addr string) {
 	}
 }
 
-
 func poolCreateEntry(addr string, rateLimit rate.Limit, bucketSize int) *LimitedConn {
 	newEntry := LimitedConn{
-		IP: addr,
+		IP:      addr,
 		Limiter: rate.NewLimiter(rateLimit, bucketSize),
 	}
 	connPool = append(connPool, &newEntry)
 	return &newEntry
 }
-
 
 // Checks if the connection's request will be allowed
 // to continue, or if it will be denied due to rate limits.

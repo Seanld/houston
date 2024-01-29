@@ -1,11 +1,9 @@
 package houston
 
-
 import (
-	"text/template"
 	"bytes"
+	"text/template"
 )
-
 
 func Template(file string, data interface{}) (string, error) {
 	// What is the point of having to name templates?

@@ -9,38 +9,35 @@ import (
 	"golang.org/x/time/rate"
 )
 
-
 type Server struct {
-	TLSConfig    *tls.Config
-	Router       *Router
-	Config       ServerConfig
+	TLSConfig *tls.Config
+	Router    *Router
+	Config    ServerConfig
 }
-
 
 type ServerConfig struct {
 	// TLS certificate and key file paths.
-	CertificatePath  string
-	KeyPath          string
+	CertificatePath string
+	KeyPath         string
 
 	// Self-explanatory.
-	Hostname         string
-	Port             uint16
+	Hostname string
+	Port     uint16
 
 	// Whether connection logging should occur,
 	// and where the file should be located.
-	EnableLog        bool
-	LogFilePath      string
+	EnableLog   bool
+	LogFilePath string
 	// This can be accessed during the server's lifetime to
 	// manually write more info to the config, other than what's
 	// built-in to Houston.
-	LogFile          *os.File
+	LogFile *os.File
 
 	// Whether the server should apply rate-limiting.
-	EnableLimiting   bool
-	MaxRate          rate.Limit
-	BucketSize       int
+	EnableLimiting bool
+	MaxRate        rate.Limit
+	BucketSize     int
 }
-
 
 func NewServer(router *Router, config *ServerConfig) Server {
 	if config.CertificatePath == "" || config.KeyPath == "" {
@@ -74,19 +71,18 @@ func NewServer(router *Router, config *ServerConfig) Server {
 	}
 
 	return Server{
-		Router: router,
+		Router:    router,
 		TLSConfig: &tls.Config{Certificates: []tls.Certificate{cer}},
-		Config: *config,
+		Config:    *config,
 	}
 }
-
 
 func (s *Server) Start() {
 	var f *os.File
 	var fileErr error
 
 	if s.Config.EnableLog {
-		f, fileErr = os.OpenFile(s.Config.LogFilePath, os.O_APPEND | os.O_CREATE | os.O_RDWR, 0666)
+		f, fileErr = os.OpenFile(s.Config.LogFilePath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
 		defer f.Close()
 
 		s.Config.LogFile = f

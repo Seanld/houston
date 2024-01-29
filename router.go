@@ -1,10 +1,8 @@
 package houston
 
-
 import (
 	"path"
 )
-
 
 // Sandboxes represent "static" file directories
 // where having code execute upon URL visitation
@@ -14,34 +12,28 @@ type Sandbox struct {
 	LocalPath string
 }
 
-
 type RouteHandler func(Context)
 
-
 type Route struct {
-	Path     string
-	Handler  RouteHandler
+	Path    string
+	Handler RouteHandler
 }
-
 
 type RouterOpts struct {
-	ErrorHandler  RouteHandler
+	ErrorHandler RouteHandler
 }
-
 
 type Router struct {
-	Routes        []Route
-	Sandboxes     []Sandbox
-	ErrorHandler  RouteHandler
+	Routes       []Route
+	Sandboxes    []Sandbox
+	ErrorHandler RouteHandler
 }
-
 
 func NewRouter(config RouterOpts) Router {
 	var newRouter Router
 	newRouter = Router{ErrorHandler: config.ErrorHandler}
 	return newRouter
 }
-
 
 func BlankRouter() Router {
 	return Router{
@@ -50,7 +42,6 @@ func BlankRouter() Router {
 		},
 	}
 }
-
 
 // Get the handler for a given route. If no route matches a
 // handler, then return the default error handler.
@@ -72,12 +63,10 @@ func (r *Router) GetRouteHandler(targetPath string) RouteHandler {
 	return r.ErrorHandler
 }
 
-
 func (r *Router) Handle(targetPath string, handler RouteHandler) {
 	newRoute := Route{path.Clean(targetPath), handler}
 	r.Routes = append(r.Routes, newRoute)
 }
-
 
 func (r *Router) Sandbox(targetPath string, sandboxDirPath string) {
 	newSandbox := Sandbox{path.Clean(targetPath), sandboxDirPath}
