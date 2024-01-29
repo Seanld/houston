@@ -26,6 +26,22 @@ func (c *Context) GetQuery() string {
 	return parsed.RawQuery
 }
 
+func (c *Context) GetParams() (url.Values, error) {
+	params, err := url.ParseQuery(c.GetQuery())
+	if err != nil {
+		return nil, err
+	}
+	return params, nil
+}
+
+func (c *Context) GetParam(key string) (string, error) {
+	params, err := c.GetParams()
+	if err != nil {
+		return "", err
+	}
+	return params.Get(key), nil
+}
+
 ///////////////
 // RESPONSES //
 ///////////////
