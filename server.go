@@ -37,6 +37,11 @@ type ServerConfig struct {
 	EnableLimiting bool
 	MaxRate        rate.Limit
 	BucketSize     int
+
+	// Example: file exists at `/page.gmi`, and user requests `/page`. Should
+	// the server append the `.gmi` and return `/page.gmi`? This assumption will
+	// happen before handler functions are checked.
+	ImplyExtension bool
 }
 
 func NewServer(router *Router, config *ServerConfig) Server {
