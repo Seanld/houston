@@ -164,6 +164,8 @@ func handleConnection(s *Server, c net.Conn) {
 
 			if context.SendFile(mimeType, fullLocalPath) == nil {
 				handledAsSandbox = true
+			} else if s.Config.ImplyExtension && context.SendFile(mimeType, fullLocalPath + ".gmi") == nil {
+				handledAsSandbox = true
 			}
 		}
 	}
