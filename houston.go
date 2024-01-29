@@ -1,18 +1,16 @@
 package houston
 
-
 import (
+	"fmt"
+	"log"
+	"mime"
 	"net"
 	"net/url"
-	"fmt"
+	"os"
 	"path"
 	"path/filepath"
-	"mime"
-	"os"
 	"strings"
-	"log"
 )
-
 
 // Strips all NULL chars, and formats to string.
 func requestAsString(request []byte) string {
@@ -30,13 +28,12 @@ func requestAsString(request []byte) string {
 
 	newRequest := make([]byte, endIndex-2)
 
-	for i:=0; i<endIndex-2; i++ {
+	for i := 0; i < endIndex-2; i++ {
 		newRequest[i] = request[i]
 	}
 
 	return string(newRequest)
 }
-
 
 func GetMimetypeFromPath(targetPath string) string {
 	extension := path.Ext(targetPath)
@@ -46,7 +43,6 @@ func GetMimetypeFromPath(targetPath string) string {
 		return mime.TypeByExtension(extension)
 	}
 }
-
 
 // Get the common part of two paths.
 func getSharedPath(path1 string, path2 string) string {
@@ -68,7 +64,7 @@ func getSharedPath(path1 string, path2 string) string {
 
 	sharedStr := ""
 
-	for i:=0; i<len(shorterPath); i++ {
+	for i := 0; i < len(shorterPath); i++ {
 		if shorterPath[i] == longerPath[i] {
 			sharedStr += string(shorterPath[i])
 		} else {
@@ -82,7 +78,6 @@ func getSharedPath(path1 string, path2 string) string {
 	return sharedStr
 }
 
-
 func cleanURLPath(targetUrl string) string {
 	parsed, _ := url.Parse(targetUrl)
 	cleaned := path.Clean(parsed.Path)
@@ -91,7 +86,6 @@ func cleanURLPath(targetUrl string) string {
 	}
 	return cleaned
 }
-
 
 // Match a URL path to a local path.
 func urlToSandboxPath(targetUrl string, sandbox Sandbox) (string, error) {
@@ -115,7 +109,6 @@ func urlToSandboxPath(targetUrl string, sandbox Sandbox) (string, error) {
 	return "", fileErr
 }
 
-
 func isAllZeroes(bytes []byte) bool {
 	for _, v := range bytes {
 		if v != 0 {
@@ -124,7 +117,6 @@ func isAllZeroes(bytes []byte) bool {
 	}
 	return true
 }
-
 
 func handleConnection(s *Server, c net.Conn) {
 	data := make([]byte, 1024)
@@ -147,7 +139,7 @@ func handleConnection(s *Server, c net.Conn) {
 
 	// Usually happens when a bot probes the server with a
 	// blank HTTP request. This saves it from crashing.
-	if (requestParsed == nil) {
+	if requestParsed == nil {
 		c.Close()
 		log.Output(1, fmt.Sprintf("Ignored request to `%s` and closed connection.", requestParsed))
 		return
@@ -170,7 +162,7 @@ func handleConnection(s *Server, c net.Conn) {
 			fullLocalPath, _ := urlToSandboxPath(dataStr, sandbox)
 			mimeType := GetMimetypeFromPath(fullLocalPath)
 
-			if (context.SendFile(mimeType, fullLocalPath) == nil) {
+			if context.SendFile(mimeType, fullLocalPath) == nil {
 				handledAsSandbox = true
 			}
 		}

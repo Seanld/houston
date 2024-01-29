@@ -1,26 +1,22 @@
 package houston
 
-
 import (
 	"fmt"
-	"os"
 	"log"
 	"net"
 	"net/url"
+	"os"
 	"strings"
 )
 
-
 type Context struct {
-	URL         string
-	Connection  net.Conn
+	URL        string
+	Connection net.Conn
 }
-
 
 func NewContext(newUrl string, newConn net.Conn) Context {
 	return Context{newUrl, newConn}
 }
-
 
 func (c *Context) GetQuery() string {
 	parsed, err := url.Parse(c.URL)
@@ -30,21 +26,17 @@ func (c *Context) GetQuery() string {
 	return parsed.RawQuery
 }
 
-
 ///////////////
 // RESPONSES //
 ///////////////
-
 
 func formatResponse(code int, meta string) []byte {
 	return []byte(fmt.Sprintf("%d %s\r\n", code, meta))
 }
 
-
 func (ctx *Context) Success(mimeType string) {
 	ctx.Connection.Write(formatResponse(20, mimeType))
 }
-
 
 // Send content data to the client.
 func (ctx *Context) SendBytes(mimeType string, content []byte) {
@@ -52,17 +44,14 @@ func (ctx *Context) SendBytes(mimeType string, content []byte) {
 	ctx.Connection.Write(content)
 }
 
-
 func (ctx *Context) SendString(mimeType string, str string) {
 	ctx.SendBytes(mimeType, []byte(str))
 }
-
 
 func (ctx *Context) SendStringf(mimeType string, str string, values ...interface{}) {
 	formatted := fmt.Sprintf(str, values...)
 	ctx.SendBytes(mimeType, []byte(formatted))
 }
-
 
 func (ctx *Context) SendFile(mimeType string, path string) error {
 	content, err := os.ReadFile(path)
@@ -73,7 +62,6 @@ func (ctx *Context) SendFile(mimeType string, path string) error {
 	return nil
 }
 
-
 func (ctx *Context) SendTemplate(mimeType string, path string, data interface{}) error {
 	rendered, err := Template(path, data)
 	if err != nil {
@@ -83,20 +71,16 @@ func (ctx *Context) SendTemplate(mimeType string, path string, data interface{})
 	return nil
 }
 
-
 ///////////////
 // 1X INPUTS //
 ///////////////
 
-
 type InputHandler func(string)
 type MultiInputHandler func([]string)
-
 
 func (ctx *Context) Input(prompt string) {
 	ctx.Connection.Write(formatResponse(10, prompt))
 }
-
 
 func (ctx *Context) InputAndDo(prompt string, handler InputHandler) {
 	queryString := ctx.GetQuery()
@@ -111,7 +95,6 @@ func (ctx *Context) InputAndDo(prompt string, handler InputHandler) {
 		ctx.Input(prompt)
 	}
 }
-
 
 // Takes a multiple-value query, splits it on the delimiter, and passes the
 // slice of values into the handler.
@@ -130,11 +113,9 @@ func (ctx *Context) DelimInputAndDo(prompt string, delim string, handler MultiIn
 	}
 }
 
-
 func (ctx *Context) SensitiveInput(prompt string) {
 	ctx.Connection.Write(formatResponse(11, prompt))
 }
-
 
 func (ctx *Context) SensitiveInputAndDo(prompt string, handler InputHandler) {
 	queryString := ctx.GetQuery()
@@ -145,11 +126,9 @@ func (ctx *Context) SensitiveInputAndDo(prompt string, handler InputHandler) {
 	}
 }
 
-
 //////////////////
 // 3X REDIRECTS //
 //////////////////
-
 
 func (ctx *Context) RedirectTemp(url string) {
 	ctx.Connection.Write(formatResponse(30, url))
@@ -159,11 +138,9 @@ func (ctx *Context) RedirectPerm(url string) {
 	ctx.Connection.Write(formatResponse(31, url))
 }
 
-
 ///////////////////////////
 // 4X TEMPORARY FAILURES //
 ///////////////////////////
-
 
 func (ctx *Context) TempFail(info string) {
 	ctx.Connection.Write(formatResponse(40, info))
@@ -185,11 +162,9 @@ func (ctx *Context) SlowDown(waitSeconds int) {
 	ctx.Connection.Write([]byte(fmt.Sprintf("44 %d\r\n", waitSeconds)))
 }
 
-
 ///////////////////////////
 // 5X PERMANENT FAILURES //
 ///////////////////////////
-
 
 func (ctx *Context) PermFailure(info string) {
 	ctx.Connection.Write(formatResponse(50, info))
@@ -211,11 +186,9 @@ func (ctx *Context) BadRequest(info string) {
 	ctx.Connection.Write(formatResponse(59, info))
 }
 
-
 ////////////////////////////////////
 // 6X CLIENT CERTIFICATE REQUIRED //
 ////////////////////////////////////
-
 
 func (ctx *Context) ClientCertRequired(info string) {
 	ctx.Connection.Write(formatResponse(60, info))
