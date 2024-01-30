@@ -118,6 +118,20 @@ func isAllZeroes(bytes []byte) bool {
 	return true
 }
 
+func tryPreDispatchHook(s *Server, context Context, routeType RouteType) {
+	// The PreDispatchHook is a handler that is called before, well,
+	// we dispatch to the relevant handler function or sandbox path.
+	if s.Config.PreDispatchHook != nil {
+		if err := s.Config.PreDispatchHook(context); err != nil {
+			errorMsg := fmt.Sprintf("Error during PreDispatchHook: %s", err)
+			fmt.Println(errorMsg)
+			if s.Config.EnableLog {
+				log.Output(1, errorMsg)
+			}
+		}
+	}
+}
+
 func handleConnection(s *Server, c net.Conn) {
 	data := make([]byte, 1024)
 	c.Read(data)
@@ -134,7 +148,11 @@ func handleConnection(s *Server, c net.Conn) {
 	}
 
 	if err != nil {
-		fmt.Println("Error occurred when parsing URL!")
+		fmt.Println(fmt.Sprintf("Error occurred when parsing URL: `%s`", dataStr))
+
+		if s.Config.EnableLog {
+			log.Output(1, fmt.Sprintf("%s (failed to parse URL) -> %s", c.RemoteAddr().String(), dataStr))
+		}
 	}
 
 	// Usually happens when a bot probes the server with a
@@ -153,6 +171,8 @@ func handleConnection(s *Server, c net.Conn) {
 	}
 
 	cleanedPath := cleanURLPath(requestParsed.Path)
+
+
 	handledAsSandbox := false
 
 	// First, see if there is a static file to serve

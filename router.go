@@ -29,6 +29,14 @@ type Router struct {
 	ErrorHandler RouteHandler
 }
 
+type RouteType int
+
+// Route types.
+const (
+	HandlerRoute RouteType = iota
+	SandboxRoute
+)
+
 func NewRouter(config RouterOpts) Router {
 	var newRouter Router
 	newRouter = Router{ErrorHandler: config.ErrorHandler}

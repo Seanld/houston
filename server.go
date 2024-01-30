@@ -42,6 +42,7 @@ type ServerConfig struct {
 	// the server append the `.gmi` and return `/page.gmi`? This assumption will
 	// happen before handler functions are checked.
 	ImplyExtension bool
+	PreDispatchHook func(Context) error
 }
 
 func NewServer(router *Router, config *ServerConfig) Server {
