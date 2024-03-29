@@ -31,7 +31,7 @@ type ServerConfig struct {
 	// This can be accessed during the server's lifetime to
 	// manually write more info to the config, other than what's
 	// built-in to Houston.
-	LogFile *os.File
+	LogFile     *os.File
 
 	// Whether the server should apply rate-limiting.
 	EnableLimiting bool
